@@ -1,0 +1,13 @@
+# db-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  labels:
+    app: clinc150
+spec:
+  accessModes:
+    - ReadWriteOnce # Solo puede ser montado por un nodo a la vez
+  resources:
+    requests:
+      storage: 500Mi # Solicitar almacenamiento

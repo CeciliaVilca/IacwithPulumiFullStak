@@ -1,0 +1,63 @@
+# db.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+  labels:
+    app: clinc150
+spec:
+  replicas: 1 # Mantenido en 1 para reducir el costo base
+  selector:
+    matchLabels:
+      app: clinc150
+      tier: database
+  template:
+    metadata:
+      labels:
+        app: clinc150
+        tier: database
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:14-alpine
+        resources: 
+          requests:
+            cpu: "50m"    # 0.05 vCPU solicitado
+            memory: "128Mi" # 128 MiB de memoria solicitada
+          limits:
+            cpu: "100m"   # Límite de 0.1 vCPU
+            memory: "256Mi" # Límite de 256 MiB de memoria
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "clinc150"
+        - name: POSTGRES_USER
+          value: "user"
+        - name: POSTGRES_PASSWORD
+          value: "password"
+        - name: PGDATA # <--- ¡CORRECCIÓN CLAVE!
+          value: "/var/lib/postgresql/data/pgdata" # Usa un subdirectorio dentro del mountPath
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-clusterip
+  labels:
+    app: clinc150
+spec:
+  selector:
+    tier: database
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP

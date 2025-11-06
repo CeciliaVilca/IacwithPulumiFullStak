@@ -1,0 +1,23 @@
+# kubernetes/hpa-backend.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-hpa
+  labels:
+    app: clinc150
+spec:
+  scaleTargetRef:
+    # Apunta al Deployment que definiste en backend.yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend-deployment
+  minReplicas: 1      
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      # Escalar si la CPU excede el 80% de utilización
+      target:
+        type: Utilization
+        averageUtilization: 5

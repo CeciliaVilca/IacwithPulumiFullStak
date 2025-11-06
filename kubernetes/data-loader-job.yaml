@@ -1,0 +1,35 @@
+# kubernetes/data-loader-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: clinc150-data-loader-job
+  labels:
+    app: clinc150
+spec:
+  # El Job termina con éxito después de la primera ejecución
+  template:
+    metadata:
+      labels:
+        app: clinc150
+        component: data-loader
+    spec:
+      restartPolicy: OnFailure # El Job debe reintentar si el script falla.
+      containers:
+      - name: data-loader
+        image: liablack/clinc150-loader:latest
+        command: ["python", "download_and_load.py"]
+        env:
+        - name: DB_HOST
+          value: "postgres-clusterip"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "clinc150"
+        - name: DB_USER
+          value: "user"
+        - name: DB_PASS
+          value: "password"
+        - name: KAGGLE_USERNAME
+          value: "lia3118"
+        - name: KAGGLE_KEY
+          value: "c0805a4c9081314b7e32344da6d31523"

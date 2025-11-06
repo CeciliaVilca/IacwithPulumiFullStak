@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # 1. SERVICIO DE BASE DE DATOS: PostgreSQL
+  db:
+    image: postgres:14-alpine # Imagen ligera y estable
+    container_name: clinc150_db
+    restart: always
+    environment:
+      # Variables usadas por la imagen oficial de Postgres
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    # Persistir los datos de la base de datos
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+  # 2. SERVICIO DE CARGA DE DATOS: Data-Loader (db/Dockerfile)
+  data-loader:
+    build: 
+      context: ./db # Usar el Dockerfile dentro de la carpeta db/
+    container_name: clinc150_data_loader
+    environment:
+      # Variables pasadas a download_and_load.py
+      DB_HOST: db # CLAVE: Usa el nombre del servicio (db) como host
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      # Credenciales de Kaggle para la descarga
+      KAGGLE_USERNAME: ${KAGGLE_USERNAME}
+      KAGGLE_KEY: ${KAGGLE_KEY}
+    depends_on:
+      - db # Debe esperar a que el servicio 'db' esté listo (aunque puede requerir un 'time.sleep' en el script)
+    # Ejecutará automáticamente el CMD del Dockerfile: python download_and_load.py
+      
+  # 3. SERVICIO DE BACKEND: Flask API (backend/Dockerfile)
+  backend:
+    build: 
+      context: ./backend # Usar el Dockerfile dentro de la carpeta backend/
+    container_name: clinc150_backend
+    ports:
+      - "5000:5000" # Mapear puerto 5000 del host al 5000 del contenedor
+    environment:
+      # Variables de DB que Flask necesita
+      DB_HOST: db # CLAVE: Usa el nombre del servicio (db) como host
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+    depends_on:
+      # Debe esperar a que los datos se hayan cargado antes de iniciar el servidor
+      - data-loader 
+      
+  # 4. SERVICIO DE FRONTEND: React/Nginx (frontend/Dockerfile)
+  frontend:
+    build: 
+      context: ./frontend # Usar el Dockerfile dentro de la carpeta frontend/
+    container_name: clinc150_frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      # Solo necesita que el backend esté corriendo
+      - backend 
+      
+# Definición de volúmenes para persistencia de datos
+volumes:
+  postgres_data:

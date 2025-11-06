@@ -1,0 +1,58 @@
+# kubernetes/backend.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  labels:
+    app: clinc150
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: clinc150
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: clinc150
+        tier: backend
+    spec:
+      containers:
+      - name: backend
+        image: liablack/clinc150-backend:latest
+        resources: 
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+        ports:
+        - containerPort: 5000
+        env: # Variables que usa Flask para conectarse
+        - name: DB_HOST
+          value: "postgres-clusterip" # CLAVE: Usa el nombre del service de K8s
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "clinc150"
+        - name: DB_USER
+          value: "user"
+        - name: DB_PASS
+          value: "password"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-clusterip
+  labels:
+    app: clinc150
+spec:
+  selector:
+    tier: backend
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+  type: ClusterIP
