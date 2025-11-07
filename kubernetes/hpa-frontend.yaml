@@ -20,4 +20,4 @@ spec:
       # Escalar si la CPU excede el 50% de utilización (los frontends suelen ser más ligeros)
       target:
         type: Utilization
-        averageUtilization: 10
+        averageUtilization: 50

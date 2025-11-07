@@ -9,7 +9,8 @@
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
         "StringEquals": {
-          "": "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+          "oidc.eks.us-east-1.amazonaws.com/id/F8B7436F6A7787CB1E78495005475A56:sub": "system:serviceaccount:kube-system:ebs-csi-controller-sa",
+          "oidc.eks.us-east-1.amazonaws.com/id/F8B7436F6A7787CB1E78495005475A56:aud": "sts.amazonaws.com" 
         }
       }
     }

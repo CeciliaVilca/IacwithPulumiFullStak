@@ -8,6 +8,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce # Solo puede ser montado por un nodo a la vez
+  storageClassName: gp2 
   resources:
     requests:
       storage: 500Mi # Solicitar almacenamiento
